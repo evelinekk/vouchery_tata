@@ -78,7 +78,7 @@
   function sanitizeCounts(value, total) {
     const used = Number.isInteger(value && value.used) ? Math.max(0, Math.min(total, value.used)) : 0;
     const pending = Number.isInteger(value && value.pending) ? Math.max(0, Math.min(total - used, value.pending)) : 0;
-    return { used, pending };
+    return { used, pending, lastUsedAt: value?.lastUsedAt || null };
   }
   function loadDemo() {
     try {
@@ -179,7 +179,10 @@
     return `<article class="voucher-card ${v.pending ? 'voucher-card--pending' : ''} ${isDone ? 'voucher-card--done' : ''}">
       <div class="voucher-top"><span class="voucher-icon">${icon(v.icon, 'svg-icon--large')}</span><div class="voucher-details">
         <h3 class="voucher-title">${escapeHTML(v.title)}</h3><span class="voucher-subtitle">${escapeHTML(v.subtitle)}</span>
-        <p class="voucher-description">${escapeHTML(v.description)}</p>
+       
+<p class="voucher-description">${escapeHTML(v.description)}</p>
+${v.used > 0 ? `<p class="voucher-last-used" style="margin:10px 0 0;color:#f4c476;font-size:12px">${v.lastUsedAt?.toDate ? `Ostatnio wykorzystano: ${v.lastUsedAt.toDate().toLocaleString('pl-PL', { timeZone: 'Europe/Warsaw', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}` : 'Wykorzystano wcześniej (brak zapisanej daty)'}</p>` : ''}
+
       </div></div>
       <div class="voucher-bottom"><div class="voucher-amount"><div class="progress" role="img" aria-label="Wykorzystane: ${v.used}; oczekujące: ${v.pending}; łącznie: ${v.total}">${dots}</div><span class="remaining">Pozostało: <strong>${available} z ${v.total}</strong></span></div>
       <div class="voucher-actions">${actions}</div></div>
@@ -423,7 +426,11 @@
         update = { pending: counts.pending + 1 };
       } else if (type === 'approve') {
         if (counts.pending < 1) throw new Error('Brak oczekujących prośb.');
-        update = { pending: counts.pending - 1, used: counts.used + 1 };
+        update = {
+  pending: counts.pending - 1,
+  used: counts.used + 1,
+  lastUsedAt: cloud.storeFns.serverTimestamp()
+};
       } else {
         if (counts.pending < 1) throw new Error('Brak oczekujących prośb.');
         update = { pending: counts.pending - 1 };
