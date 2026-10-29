@@ -209,6 +209,32 @@
       <footer class="page-footer">Przygotowane specjalnie dla Taty <span class="heart">♥</span> od Eweliny</footer>
     </main>`;
   }
+    function randomBetween(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+
+  function launchConfetti(count = 28) {
+    const layer = document.createElement('div');
+    layer.className = 'confetti-layer';
+
+    const colors = ['#f59e0b', '#fbbf24', '#fde68a', '#ffffff', '#c084fc', '#fb7185'];
+
+    for (let i = 0; i < count; i++) {
+      const piece = document.createElement('span');
+      piece.className = 'confetti-piece';
+
+      piece.style.left = `${Math.random() * 100}vw`;
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.animationDuration = `${randomBetween(900, 1700)}ms`;
+      piece.style.animationDelay = `${randomBetween(0, 180)}ms`;
+      piece.style.setProperty('--drift', `${randomBetween(-180, 180)}px`);
+
+      layer.appendChild(piece);
+    }
+
+    document.body.appendChild(layer);
+    setTimeout(() => layer.remove(), 2200);
+  }
   function render() {
     appElement.innerHTML = !state.role || state.role === 'ewelina_login' ? loginScreen() : mainScreen();
   }
@@ -358,9 +384,17 @@
     state.working = true;
     render();
     try {
-      if (online) await mutateCloud(type, id);
+            if (online) await mutateCloud(type, id);
       else mutateDemo(type, id);
-      notify({ request: 'Wysłano prośbę do Eweliny!', approve: 'Zatwierdzono wykorzystanie bonu!', reject: 'Odrzucono prośbę.' }[type]);
+
+      if (type === 'request') launchConfetti(24);
+      if (type === 'approve') launchConfetti(40);
+
+      notify({
+        request: 'Wysłano prośbę do Eweliny!',
+        approve: 'Zatwierdzono wykorzystanie bonu!',
+        reject: 'Odrzucono prośbę.'
+      }[type]);
     } catch (error) { notify(explainError(error), 'error'); }
     finally { state.working = false; render(); }
   }
