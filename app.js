@@ -235,9 +235,63 @@
     document.body.appendChild(layer);
     setTimeout(() => layer.remove(), 2200);
   }
+  
   function render() {
-    appElement.innerHTML = !state.role || state.role === 'ewelina_login' ? loginScreen() : mainScreen();
+    const isMain = state.role === 'tata' || state.role === 'ewelina';
+    const html = isMain ? mainScreen() : loginScreen();
+    const page = appElement.querySelector('main.page');
+    const expectedName = state.role === 'tata' ? 'Tata' : 'Ewelina';
+
+    if (!isMain || !page ||
+        page.querySelector('.brand-user strong')?.textContent !== expectedName) {
+      if (appElement.innerHTML !== html) appElement.innerHTML = html;
+      return;
+    }
+
+    const template = document.createElement('template');
+    template.innerHTML = html;
+    const freshPage = template.content.firstElementChild;
+
+    function patch(oldParent, newParent, selector, afterSelector) {
+      const oldNode = oldParent.querySelector(selector);
+      const newNode = newParent.querySelector(selector);
+
+      if (oldNode && newNode) {
+        if (!oldNode.isEqualNode(newNode)) oldNode.replaceWith(newNode);
+      } else if (oldNode) {
+        oldNode.remove();
+      } else if (newNode) {
+        const anchor = afterSelector && oldParent.querySelector(afterSelector);
+        if (anchor) anchor.after(newNode);
+        else oldParent.appendChild(newNode);
+      }
+    }
+
+    patch(page, freshPage, '.notice', '.topbar');
+    patch(page, freshPage, '.error-panel', '.topbar');
+    patch(page, freshPage, '.status-line');
+    patch(page, freshPage, '.info-box', '.welcome');
+    patch(page, freshPage, '.admin-zone', '.voucher-list');
+
+    const cards = [...page.querySelectorAll('.voucher-card')];
+    const freshCards = [...freshPage.querySelectorAll('.voucher-card')];
+
+    if (cards.length !== freshCards.length) {
+      appElement.innerHTML = html;
+      return;
+    }
+
+    cards.forEach((card, i) => {
+      const fresh = freshCards[i];
+      if (card.className !== fresh.className) card.className = fresh.className;
+
+      patch(card, fresh, '.progress');
+      patch(card, fresh, '.remaining');
+      patch(card, fresh, '.voucher-actions');
+      patch(card, fresh, '.voucher-last-used', '.voucher-description');
+    });
   }
+
   function stopListener() {
     if (cloud.unsubscribe) { cloud.unsubscribe(); cloud.unsubscribe = null; }
   }
