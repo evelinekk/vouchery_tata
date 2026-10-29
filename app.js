@@ -108,7 +108,7 @@
     return error && error.message ? error.message : 'Wystąpił błąd. Spróbuj ponownie.';
   }
   function statusMarkup() {
-    if (!online) return `<span class="status-pill status-pill--warn"><span class="dot"></span>Tryb demo · tylko ta przeglądarka</span>`;
+    if (!online) return `<span class="status-pill status-pill--warn"><span class="dot"></span>Zapis na tym urządzeniu</span>`;
     if (state.cloudError) return `<span class="status-pill status-pill--warn"><span class="dot"></span>Błąd synchronizacji</span>`;
     if (state.cacheOnly) return `<span class="status-pill status-pill--warn"><span class="dot"></span>Offline · odczyt z pamięci</span>`;
     if (!state.ready || !state.synced) return `<span class="status-pill"><span class="dot"></span>Łączenie z Firebase…</span>`;
@@ -122,7 +122,7 @@
     const login = state.role === 'ewelina_login';
     const disabled = (state.working || (online && (!state.ready || !configComplete))) ? 'disabled' : '';
     const modeMessage = !online
-      ? `<strong>Wersja demonstracyjna.</strong> Możesz testować bony od razu. Dane są zapisywane tylko na tym urządzeniu. Hasło Eweliny w demo: <strong>1234</strong>.`
+      ? `Witaj w aplikacji z bonami urodzinowymi! Wybierz swój profil, aby rozpocząć.`
       : state.cloudError
         ? `Nie udało się uruchomić Firebase. Sprawdź konfigurację, połączenie z internetem i odśwież stronę.`
         : !configComplete
@@ -284,7 +284,7 @@
     render();
     try {
       if (!online) {
-        if (password !== '1234') throw new Error('Nieprawidłowe hasło! (Demo: 1234)');
+        if (password !== '1234') throw new Error('Nieprawidłowe hasło!');
       } else {
         const result = await cloud.authFns.signInWithEmailAndPassword(cloud.auth, settings.adminEmail, password);
         if (result.user.uid !== settings.adminUid) {
